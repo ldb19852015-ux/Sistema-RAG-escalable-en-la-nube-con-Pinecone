@@ -1,0 +1,10 @@
+DOCUMENTO TÉCNICO: PROCEDIMIENTO DE REDES Y CACHÉ
+
+1. Configuración de Servicios
+El servicio de caché en memoria utiliza Redis v7.2 configurado en el puerto 6379 con clúster primario y réplica de respaldo. En caso de timeout superior a 3000ms, el balanceador redirige el tráfico a la base de datos principal PostgreSQL v16 instalada en el puerto 5432.
+
+2. Servidores de Aplicación
+Las APIs principales corren sobre FastAPI en contenedores Docker gestionados mediante Kubernetes. Cada nodo worker cuenta con un límite de memoria asignado de 4GB RAM y 2 vCPUs.
+
+3. Políticas de Escalado
+El Auto-scaling horizontal se activa automáticamente cuando el consumo de CPU supera el 85% durante más de 3 minutos consecutivos o cuando el pool de conexiones a PostgreSQL alcanza el 90% de capacidad.
