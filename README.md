@@ -11,4 +11,4 @@ Evolución del sistema RAG local de la pre-entrega 3, migrado a una arquitectura
 
 1. **Instalar dependencias**:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt# Sistema-RAG-escalable-en-la-nube-con-Pinecone
