@@ -1,24 +1,5 @@
 import os
-import ssl
 
-import urllib3
-
-# 1. Parche global para ignorar certificados autofirmados en red corporativa
-ssl._create_default_https_context = ssl._create_unverified_context
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-old_init = urllib3.connection.HTTPSConnection.__init__
-
-
-def new_init(self, *args, **kwargs):
-    kwargs["cert_reqs"] = "CERT_NONE"
-    old_init(self, *args, **kwargs)
-
-
-urllib3.connection.HTTPSConnection.__init__ = new_init
-
-# 2. Demás importaciones ordenadas alfabéticamente
-import httpx
 from dotenv import load_dotenv
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_openai import OpenAIEmbeddings
@@ -39,7 +20,7 @@ def indexar_documentos_en_nube():
     if not api_key or not pinecone_api_key:
         raise ValueError("Faltan credenciales de OpenAI o Pinecone en las variables de entorno.")
 
-    # 3. Inicialización de Pinecone
+    # 1. Inicialización de Pinecone
     pc = Pinecone(api_key=pinecone_api_key)
 
     try:
@@ -63,7 +44,7 @@ def indexar_documentos_en_nube():
     else:
         print(f"ℹ️ El índice '{index_name}' ya existe en la nube.")
 
-    # 4. Carga de documentos
+    # 2. Carga de documentos
     print("📁 Cargando documentos desde la carpeta /data...")
     loader = DirectoryLoader(
         DATA_PATH,
@@ -77,7 +58,7 @@ def indexar_documentos_en_nube():
         print("❌ No se encontraron documentos en la carpeta /data.")
         return
 
-    # 5. Chunking estratégico
+    # 3. Chunking estratégico
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
@@ -86,12 +67,10 @@ def indexar_documentos_en_nube():
     chunks = text_splitter.split_documents(docs)
     print(f"🧩 Se generaron {len(chunks)} fragmentos (chunks).")
 
-    # 6. Embeddings e Ingesta en Pinecone
-    http_client = httpx.Client(verify=False)
+    # 4. Embeddings e Ingesta en Pinecone (Sin bypass de SSL)
     embeddings = OpenAIEmbeddings(
         model="text-embedding-3-small",
         api_key=api_key,
-        http_client=http_client,
     )
 
     print("🚀 Subiendo vectores y metadatos a Pinecone Serverless...")
